@@ -13,16 +13,13 @@ from pydantic import BaseModel
 
 st.title('Allia health')
 
-
-
 # Define Pydantic models
 class Summary(BaseModel):
     session_focus: str
     chief_complaint: str
 
 class Challenge(BaseModel):
-    challenge_heading: str
-    challenge_description: str
+    challenge: str
 
 class Challenges(BaseModel):
     challenges: List[Challenge]
@@ -45,10 +42,6 @@ class Plan(BaseModel):
     homework: str
     additional_notes: str
 
-# Initialize OpenAI client
-openai.api_key = st.secrets["OPENAI_API_KEY"]
-client = openai.OpenAI()
-
 def remove_timestamps(transcript: str) -> str:
     lines = transcript.split('\n')
     cleaned_lines = [line.split(']')[1].strip() if ']' in line else line for line in lines]
@@ -61,7 +54,7 @@ def fetch_completion(response_format, prompt, sentences):
         top_p=0.67,
         frequency_penalty=0.5,
         messages=[
-            {"role": "system", "content": "You are a helpful psychologist who is expert at creating progress notes from sessions. Use the transcript provided to answer the questions in json. The transcript is a list of important sentences with the behavioural traits identified by a trait classification model. The traits are for your context. Do not mention the traits in any way"},
+            {"role": "system", "content": "You are a helpful psychologist who is expert at creating progress notes from sessions. Use the transcript provided to answer the questions. The transcript is a list of important sentences with the behavioural traits identified by a trait classification model. The traits are for your context. Do not mention the traits in any way"},
             {"role": "user", "content": prompt + " ".join(sentences)}
         ],
         response_format={"type": "json_object"}
@@ -121,7 +114,7 @@ if st.button("Analyze"):
 
         st.subheader("Challenges")
         for challenge in result['challenges'].challenges:
-            st.write(f"- {challenge.challenge_heading}: {challenge.challenge_description}")
+            st.write(f"- {challenge.challenge}")
 
         st.subheader("Symptoms")
         for symptom in result['symptoms'].symptoms:
@@ -153,11 +146,10 @@ st.sidebar.write("""
    pydantic
    ```
 4. Add a `README.md` file with app description and setup instructions.
-5. Create a `.streamlit/secrets.toml` file with your OpenAI API key:
-   ```
-   OPENAI_API_KEY = "your-api-key-here"
-   ```
-6. Push your code to GitHub (don't include the secrets.toml file in your repository).
+5. Replace 'your-api-key-here' in the OPENAI_API_KEY variable with your actual OpenAI API key.
+6. Push your code to GitHub.
 7. Set up GitHub Actions for automatic deployment or use a platform like Streamlit Sharing.
-8. When deploying, make sure to set the OPENAI_API_KEY as an environment variable or secret in your deployment platform.
+
+Note: Storing API keys directly in your code is not recommended for security reasons. 
+In a production environment, consider using environment variables or secure secret management.
 """)
