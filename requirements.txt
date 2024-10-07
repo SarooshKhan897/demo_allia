@@ -1,4 +1,4 @@
 streamlit
 pandas
-from pydantic import BaseModel
-from openai import OpenAI
+pydantic
+openai
