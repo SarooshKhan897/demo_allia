@@ -5,6 +5,7 @@ from time import sleep
 import openai
 from typing import List
 from pydantic import BaseModel
+from openai import OpenAI
 
 st.title('Allia health')
 
