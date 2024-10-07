@@ -13,6 +13,10 @@ from pydantic import BaseModel
 
 st.title('Allia health')
 
+# Initialize OpenAI client
+openai.api_key = st.secrets["OPENAI_API_KEY"]
+client = openai.OpenAI()
+
 # Define Pydantic models
 class Summary(BaseModel):
     session_focus: str
