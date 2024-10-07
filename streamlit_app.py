@@ -9,6 +9,7 @@ from openai import OpenAI
 import streamlit as st
 import openai
 from typing import List
+from typing import Dict
 from pydantic import BaseModel
 
 st.title('Allia health')
