@@ -11,7 +11,7 @@ st.title('Allia health')
 
 # WARNING: Storing API keys directly in your code is not recommended for security reasons.
 # In a production environment, use environment variables or secure secret management.
-OPENAI_API_KEY = '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'
+OPENAI_API_KEY = 'sk-yBCiax6yQamL_Mwybm63tdy8ggYKjsP_F35nsARXI7T3BlbkFJo0LDMvqNjgxjDGTcubX3OPQ1D27IbX4DoccCGUvcsA'
 client = OpenAI( api_key=OPENAI_API_KEY )
 
 # Define Pydantic models
