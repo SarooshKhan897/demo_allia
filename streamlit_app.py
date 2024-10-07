@@ -28,13 +28,8 @@ class Challenge(BaseModel):
 class Challenges(BaseModel):
     challenges: List[Challenge]
 
-class Symptom(BaseModel):
-    symptom_heading: str
-    symptom_frequency: str
-    symptom_description: str
-
 class Symptoms(BaseModel):
-    symptoms: List[Symptom]
+    symptoms: Dict[str, Optional[str]]
 
 class Assessment(BaseModel):
     risks_or_safety_concerns: str
@@ -58,7 +53,7 @@ def fetch_completion(response_format, prompt, sentences):
         top_p=0.67,
         frequency_penalty=0.5,
         messages=[
-            {"role": "system", "content": "You are a helpful psychologist who is expert at creating progress notes from sessions. Use the transcript provided to answer the questions in json. The transcript is a list of important sentences with the behavioural traits identified by a trait classification model. The traits are for your context. Do not mention the traits in any way"},
+            {"role": "system", "content": "You are a helpful psychologist who is expert at creating progress notes from sessions. Use the transcript provided to answer the questions. The transcript is a list of important sentences with the behavioural traits identified by a trait classification model. The traits are for your context. Do not mention the traits in any way"},
             {"role": "user", "content": prompt + " ".join(sentences)}
         ],
         response_format={"type": "json_object"}
@@ -121,10 +116,10 @@ if st.button("Analyze"):
             st.write(f"- {challenge.challenge}")
 
         st.subheader("Symptoms")
-        for symptom in result['symptoms'].symptoms:
-            st.write(f"- {symptom.symptom_heading}")
-            st.write(f"  Frequency: {symptom.symptom_frequency}")
-            st.write(f"  Description: {symptom.symptom_description}")
+        for symptom, description in result['symptoms'].symptoms.items():
+            st.write(f"- {symptom}")
+            if description:
+                st.write(f"  Description: {description}")
 
         st.subheader("Assessment")
         st.write(f"Risks or Safety Concerns: {result['assessment'].risks_or_safety_concerns}")
