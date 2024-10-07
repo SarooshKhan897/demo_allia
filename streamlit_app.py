@@ -1,13 +1,10 @@
 import streamlit as st
-
-st.title('🎈Allia health')
-
-st.write('This app demonstrate's Allia's core capabilities!')
-
-import streamlit as st
 import requests
 import json
 from time import sleep
+
+st.title('🎈Allia health')
+
 
 def call_api(transcript):
     # Simulate API call with a delay
