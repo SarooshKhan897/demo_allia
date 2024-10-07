@@ -6,7 +6,7 @@ import openai
 from typing import List
 from pydantic import BaseModel
 
-st.title('🎈Allia health')
+st.title('Allia health')
 
 # WARNING: Storing API keys directly in your code is not recommended for security reasons.
 # In a production environment, use environment variables or secure secret management.
