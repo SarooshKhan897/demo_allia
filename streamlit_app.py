@@ -6,13 +6,14 @@ import openai
 from typing import List
 from pydantic import BaseModel
 from openai import OpenAI
+import streamlit as st
+import openai
+from typing import List
+from pydantic import BaseModel
 
 st.title('Allia health')
 
-# WARNING: Storing API keys directly in your code is not recommended for security reasons.
-# In a production environment, use environment variables or secure secret management.
-OPENAI_API_KEY = 'sk-yBCiax6yQamL_Mwybm63tdy8ggYKjsP_F35nsARXI7T3BlbkFJo0LDMvqNjgxjDGTcubX3OPQ1D27IbX4DoccCGUvcsA'
-client = OpenAI( api_key=OPENAI_API_KEY )
+
 
 # Define Pydantic models
 class Summary(BaseModel):
@@ -43,6 +44,10 @@ class Plan(BaseModel):
     follow_up_actions: str
     homework: str
     additional_notes: str
+
+# Initialize OpenAI client
+openai.api_key = st.secrets["OPENAI_API_KEY"]
+client = openai.OpenAI()
 
 def remove_timestamps(transcript: str) -> str:
     lines = transcript.split('\n')
@@ -148,10 +153,11 @@ st.sidebar.write("""
    pydantic
    ```
 4. Add a `README.md` file with app description and setup instructions.
-5. Replace 'your-api-key-here' in the OPENAI_API_KEY variable with your actual OpenAI API key.
-6. Push your code to GitHub.
+5. Create a `.streamlit/secrets.toml` file with your OpenAI API key:
+   ```
+   OPENAI_API_KEY = "your-api-key-here"
+   ```
+6. Push your code to GitHub (don't include the secrets.toml file in your repository).
 7. Set up GitHub Actions for automatic deployment or use a platform like Streamlit Sharing.
-
-Note: Storing API keys directly in your code is not recommended for security reasons. 
-In a production environment, consider using environment variables or secure secret management.
+8. When deploying, make sure to set the OPENAI_API_KEY as an environment variable or secret in your deployment platform.
 """)
