@@ -10,7 +10,7 @@ st.title('🎈Allia health')
 
 # WARNING: Storing API keys directly in your code is not recommended for security reasons.
 # In a production environment, use environment variables or secure secret management.
-OPENAI_API_KEY = "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"  # Replace with your actual OpenAI API key
+OPENAI_API_KEY = "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"  # Replace with your actual OpenAI API key
 
 # Initialize OpenAI client
 client = openai.OpenAI(api_key=OPENAI_API_KEY)
