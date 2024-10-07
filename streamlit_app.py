@@ -58,7 +58,7 @@ def fetch_completion(response_format, prompt, sentences):
         top_p=0.67,
         frequency_penalty=0.5,
         messages=[
-            {"role": "system", "content": "You are a helpful psychologist who is expert at creating progress notes from sessions. Use the transcript provided to answer the questions. The transcript is a list of important sentences with the behavioural traits identified by a trait classification model. The traits are for your context. Do not mention the traits in any way"},
+            {"role": "system", "content": "You are a helpful psychologist who is expert at creating progress notes from sessions. Use the transcript provided to answer the questions in json. The transcript is a list of important sentences with the behavioural traits identified by a trait classification model. The traits are for your context. Do not mention the traits in any way"},
             {"role": "user", "content": prompt + " ".join(sentences)}
         ],
         response_format={"type": "json_object"}
