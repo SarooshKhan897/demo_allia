@@ -121,9 +121,6 @@ def pretty_print_json(data, key, heading):
     
 
 
-st.title("Progress Note")
-
-st.title("Session Report Analysis")
 
 if st.button("Analyze"):
     transcript = "Some transcript text here"  # Placeholder for transcript input
@@ -134,24 +131,7 @@ if st.button("Analyze"):
         # Ensure result is a dictionary after parsing
         if isinstance(result, str):
             result = json.loads(result)
-        
-        # Display results
-        if "summary" in result:
-            pretty_print_json(result["summary"], key="summary", heading="Session Summary")
-
-        if "challenges" in result and isinstance(result["challenges"], dict):
-            challenges = result["challenges"].get("challenges", [])
-            pretty_print_json(challenges, key="Challenge", heading="Client Challenges")
-
-        if "symptoms" in result and isinstance(result["symptoms"], dict):
-            symptoms = result["symptoms"].get("symptoms", [])
-            pretty_print_json(symptoms, key="Symptom", heading="Reported Symptoms")
-
-        if "assessment" in result and isinstance(result["assessment"], dict):
-            pretty_print_json(result["assessment"], key="Assessment", heading="Assessment Details")
-
-        if "plan" in result and isinstance(result["plan"], dict):
-            pretty_print_json(result["plan"], key="Plan", heading="Follow-up Plan")
+            st.write(result)
     else:
         st.warning("Please enter a transcript to analyze.")
 
