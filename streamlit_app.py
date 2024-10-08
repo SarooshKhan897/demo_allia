@@ -110,28 +110,8 @@ if st.button("Analyze"):
         
         # Display results
         st.subheader("Summary")
-        st.write(f"Session Focus: {result['summary'].session_focus}")
-        st.write(f"Chief Complaint: {result['summary'].chief_complaint}")
-
-        st.subheader("Challenges")
-        for challenge in result['challenges'].challenges:
-            st.write(f"- {challenge.challenge}")
-
-        st.subheader("Symptoms")
-        for symptom, description in result['symptoms'].symptoms.items():
-            st.write(f"- {symptom}")
-            if description:
-                st.write(f"  Description: {description}")
-
-        st.subheader("Assessment")
-        st.write(f"Risks or Safety Concerns: {result['assessment'].risks_or_safety_concerns}")
-        st.write(f"Therapeutic Approach: {result['assessment'].therapeutic_approach}")
-        st.write(f"Psychological Interventions: {result['assessment'].psychological_interventions}")
-
-        st.subheader("Plan")
-        st.write(f"Follow-up Actions: {result['plan'].follow_up_actions}")
-        st.write(f"Homework: {result['plan'].homework}")
-        st.write(f"Additional Notes: {result['plan'].additional_notes}")
+        st.write(result)
+    
     else:
         st.warning("Please enter a transcript to analyze.")
 
