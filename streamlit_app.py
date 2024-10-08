@@ -126,7 +126,7 @@ if st.button("Analyze"):
     transcript = "Some transcript text here"  # Placeholder for transcript input
     if transcript:
         with st.spinner("Analyzing transcript..."):
-            result = results  # Replace this line with: result = call_api(transcript)
+            result = call_api(transcript)  
         
         # Display results
         if "summary" in result:
