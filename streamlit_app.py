@@ -60,7 +60,7 @@ def fetch_completion(response_format, prompt, sentences):
         ],
         response_format={"type": "json_object"}
     )
-    return response_format.parse_raw(completion.choices[0].message.content)
+    return completion.choices[0].message.content
 
 def call_api(transcript):
     # Process the transcript
