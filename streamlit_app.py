@@ -103,15 +103,48 @@ st.title("Therapy Session Analysis")
 # Text area for transcript input
 transcript = st.text_area("Enter the therapy session transcript:", height=200)
 
+import json
+def pretty_print_json(data, key, heading):
+    st.subheader(heading)
+    if isinstance(data, list):
+        for i, item in enumerate(data):
+            st.markdown(f"**{key} {i + 1}:**")
+            for sub_key, sub_value in item.items():
+                st.markdown(f"- **{sub_key}:** {sub_value}")
+            st.markdown("---")
+    elif isinstance(data, dict):
+        for sub_key, sub_value in data.items():
+            st.markdown(f"**{sub_key}:** {sub_value}")
+    else:
+        st.text(data)
+    st.markdown("\n")
+
+
+st.title("Progress note")
+
 if st.button("Analyze"):
+    transcript = "Some transcript text here"  # Placeholder for transcript input
     if transcript:
         with st.spinner("Analyzing transcript..."):
-            result = call_api(transcript)
+            result = results  # Replace this line with: result = call_api(transcript)
         
         # Display results
-        st.subheader("Summary")
-        st.write(result)
-    
+        if "summary" in result:
+            pretty_print_json(result["summary"], key="summary", heading="Session Summary")
+
+        if "challenges" in result:
+            challenges = result["challenges"].get("challenges", [])
+            pretty_print_json(challenges, key="Challenge", heading="Client Challenges")
+
+        if "symptoms" in result:
+            symptoms = result["symptoms"].get("symptoms", [])
+            pretty_print_json(symptoms, key="Symptom", heading="Reported Symptoms")
+
+        if "assessment" in result:
+            pretty_print_json(result["assessment"], key="Assessment", heading="Assessment Details")
+
+        if "plan" in result:
+            pretty_print_json(result["plan"], key="Plan", heading="Follow-up Plan")
     else:
         st.warning("Please enter a transcript to analyze.")
 
