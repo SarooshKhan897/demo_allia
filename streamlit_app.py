@@ -120,31 +120,31 @@ def pretty_print_json(data, key, heading):
     st.markdown("\n")
 
 
-st.title("Progress note")
+st.title("Progress Note")
 
 if st.button("Analyze"):
     transcript = "Some transcript text here"  # Placeholder for transcript input
     if transcript:
         with st.spinner("Analyzing transcript..."):
-            result = call_api(transcript)  
+            result = call_api(transcript) 
         
         # Display results
         if "summary" in result:
             pretty_print_json(result["summary"], key="summary", heading="Session Summary")
 
         if "challenges" in result:
-            challenges = result["challenges"].get("challenges", [])
+            challenges = result.get("challenges", {}).get("challenges", [])
             pretty_print_json(challenges, key="Challenge", heading="Client Challenges")
 
         if "symptoms" in result:
-            symptoms = result["symptoms"].get("symptoms", [])
+            symptoms = result.get("symptoms", {}).get("symptoms", [])
             pretty_print_json(symptoms, key="Symptom", heading="Reported Symptoms")
 
         if "assessment" in result:
-            pretty_print_json(result["assessment"], key="Assessment", heading="Assessment Details")
+            pretty_print_json(result.get("assessment", {}), key="Assessment", heading="Assessment Details")
 
         if "plan" in result:
-            pretty_print_json(result["plan"], key="Plan", heading="Follow-up Plan")
+            pretty_print_json(result.get("plan", {}), key="Plan", heading="Follow-up Plan")
     else:
         st.warning("Please enter a transcript to analyze.")
 
