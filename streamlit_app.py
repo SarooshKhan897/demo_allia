@@ -9,7 +9,7 @@ def call_api(endpoint, data):
     return response.json()
 
 # Streamlit app
-st.title("Therapy Assistant App")
+st.title("Allia Health - Demo")
 
 # Sidebar Navigation
 options = ["Notes", "Treatment Plan", "Copilot", "Language"]
