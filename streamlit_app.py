@@ -2,14 +2,13 @@ import streamlit as st
 import requests
 
 # Function to call an API for processing
-
 def call_api(endpoint, data):
     # Replace with your actual API endpoint and handle the response appropriately
     response = requests.post(endpoint, json=data)
     return response.json()
 
 # Streamlit app
-st.title("Allia Health - Demo")
+st.title("Therapy Assistant App")
 
 # Sidebar Navigation
 options = ["Notes", "Treatment Plan", "Copilot", "Language"]
@@ -43,13 +42,21 @@ elif selected_option == "Treatment Plan":
 
 elif selected_option == "Copilot":
     st.header("Chat Copilot")
-    user_input = st.text_input("Enter your query")
-    if st.button("Ask Copilot"):
-        response = call_api("http://example.com/copilot", {"user_input": user_input})
-        
-        # Display the response from Copilot
-        st.subheader("Copilot Response")
-        st.text(response.get("reply", "No response available"))
+    llm_option = st.selectbox("Choose LLM", ["OpenAI", "Claude", "Llama", "Allia"])
+    chat_history = st.session_state.get("chat_history", [])
+
+    user_input = st.text_input("You: ")
+    if st.button("Send"):
+        if user_input:
+            chat_history.append(f"You: {user_input}")
+            response = call_api(f"http://example.com/copilot/{llm_option.lower()}", {"user_input": user_input})
+            reply = response.get("reply", "No response available")
+            chat_history.append(f"{llm_option}: {reply}")
+            st.session_state["chat_history"] = chat_history
+
+    st.subheader("Chat History")
+    for message in chat_history:
+        st.write(message)
 
 elif selected_option == "Language":
     st.header("Upload Therapy Transcript for Sentence Analysis")
