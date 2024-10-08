@@ -8,14 +8,15 @@ def call_api(endpoint, data):
     return response.json()
 
 # Streamlit app
-st.title("Therapy Assistant App")
+st.title("Allia health demo")
 
 # Sidebar Navigation
 options = ["Notes", "Treatment Plan", "Copilot", "Language"]
 selected_option = st.sidebar.selectbox("Select an Option", options)
 
 if selected_option == "Notes":
-    st.header("Upload Therapy Transcript for Progress Notes")
+    st.header("Progress Notes")
+    st.description("Upload a transcript from a therapy session and Allia's models with automatically process it into a thorough progress note")
     transcript_file = st.file_uploader("Upload a Transcript File (txt/pdf)", type=["txt", "pdf"])
 
     if transcript_file is not None:
@@ -28,7 +29,9 @@ if selected_option == "Notes":
         st.text(response.get("progress_note", "No response available"))
 
 elif selected_option == "Treatment Plan":
-    st.header("Upload Therapy Transcript and EHR Data for Treatment Plan")
+    st.header("Treatment Plan - Demo")
+    st.description("Upload a transcript from a therapy session and paste patient's EHR to process it into a detailed note
+                   "Note: The treatment plan does not include the context from behavioural markers and clinical assessments. These features require an active patient input")
     transcript_file = st.file_uploader("Upload a Transcript File (txt/pdf)", type=["txt", "pdf"])
     ehr_data = st.text_area("Enter EHR Data (if available)")
 
@@ -41,7 +44,8 @@ elif selected_option == "Treatment Plan":
         st.text(response.get("treatment_plan", "No response available"))
 
 elif selected_option == "Copilot":
-    st.header("Chat Copilot")
+    st.header("Allia Copilot")
+    st.description("This model is powered by Allia's proprietary language model. It responsds with references accurate academic literature spanning over 1M documents. It is still a work in progress and will be launched in January 2025")
     llm_option = st.selectbox("Choose LLM", ["OpenAI", "Claude", "Llama", "Allia"])
     chat_history = st.session_state.get("chat_history", [])
 
@@ -59,7 +63,8 @@ elif selected_option == "Copilot":
         st.write(message)
 
 elif selected_option == "Language":
-    st.header("Upload Therapy Transcript for Sentence Analysis")
+    st.header("Language demo")
+    st.description("Upload a therapy transcript and Allia's proprietory models will identify the key psychiatric traits and dimensional anaysis of the patient. This exactly emulates the way a clinician  thinks")
     transcript_file = st.file_uploader("Upload a Transcript File (txt/pdf)", type=["txt", "pdf"])
 
     if transcript_file is not None:
