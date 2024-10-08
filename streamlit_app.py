@@ -30,8 +30,8 @@ if selected_option == "Notes":
 
 elif selected_option == "Treatment Plan":
     st.header("Treatment Plan - Demo")
-    st.description("Upload a transcript from a therapy session and paste patient's EHR to process it into a detailed note
-                   "Note: The treatment plan does not include the context from behavioural markers and clinical assessments. These features require an active patient input")
+    st.description("Upload a transcript from a therapy session and paste patient's EHR to process it into a detailed note")
+    st.drscription("Note: The treatment plan does not include the context from behavioural markers and clinical assessments. These features require an active patient input")
     transcript_file = st.file_uploader("Upload a Transcript File (txt/pdf)", type=["txt", "pdf"])
     ehr_data = st.text_area("Enter EHR Data (if available)")
 
