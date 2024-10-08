@@ -16,7 +16,7 @@ selected_option = st.sidebar.selectbox("Select an Option", options)
 
 if selected_option == "Notes":
     st.header("Progress Notes")
-    st.description("Upload a transcript from a therapy session and Allia's models with automatically process it into a thorough progress note")
+    st.text("Upload a transcript from a therapy session and Allia's models with automatically process it into a thorough progress note")
     transcript_file = st.file_uploader("Upload a Transcript File (txt/pdf)", type=["txt", "pdf"])
 
     if transcript_file is not None:
@@ -30,8 +30,8 @@ if selected_option == "Notes":
 
 elif selected_option == "Treatment Plan":
     st.header("Treatment Plan - Demo")
-    st.description("Upload a transcript from a therapy session and paste patient's EHR to process it into a detailed note")
-    st.drscription("Note: The treatment plan does not include the context from behavioural markers and clinical assessments. These features require an active patient input")
+    st.text("Upload a transcript from a therapy session and paste patient's EHR to process it into a detailed note")
+    st.text("Note: The treatment plan does not include the context from behavioural markers and clinical assessments. These features require an active patient input")
     transcript_file = st.file_uploader("Upload a Transcript File (txt/pdf)", type=["txt", "pdf"])
     ehr_data = st.text_area("Enter EHR Data (if available)")
 
@@ -45,7 +45,7 @@ elif selected_option == "Treatment Plan":
 
 elif selected_option == "Copilot":
     st.header("Allia Copilot")
-    st.description("This model is powered by Allia's proprietary language model. It responsds with references accurate academic literature spanning over 1M documents. It is still a work in progress and will be launched in January 2025")
+    st.text("This model is powered by Allia's proprietary language model. It responsds with references accurate academic literature spanning over 1M documents. It is still a work in progress and will be launched in January 2025")
     llm_option = st.selectbox("Choose LLM", ["OpenAI", "Claude", "Llama", "Allia"])
     chat_history = st.session_state.get("chat_history", [])
 
@@ -64,7 +64,7 @@ elif selected_option == "Copilot":
 
 elif selected_option == "Language":
     st.header("Language demo")
-    st.description("Upload a therapy transcript and Allia's proprietory models will identify the key psychiatric traits and dimensional anaysis of the patient. This exactly emulates the way a clinician  thinks")
+    st.text("Upload a therapy transcript and Allia's proprietory models will identify the key psychiatric traits and dimensional anaysis of the patient. This exactly emulates the way a clinician  thinks")
     transcript_file = st.file_uploader("Upload a Transcript File (txt/pdf)", type=["txt", "pdf"])
 
     if transcript_file is not None:
