@@ -48,25 +48,24 @@ if selected_option == "Notes":
         
         # Send POST request to process the note
         if st.button("Process Transcript"):
-            response = call_post_api("https://api-stage.allia.health/api/clinician/note/process-temp", data)
+            post_response = call_post_api("https://api-stage.allia.health/api/clinician/note/process-temp", data)
             
             # Display the progress note neatly
-            if "error" in response:
-                st.error(response["error"])
+            if "error" in post_response:
+                st.error(post_response["error"])
             else:
                 st.subheader("Generated Progress Note")
-                st.markdown(response.get("progress_note", "No response available"))
-        
-        # Automatically get the processed notes via GET request after processing the transcript
-        if "progress_note" in response:
-            response = call_get_api("https://api-stage.allia.health/api/clinician/note/process-temp")
-            
-            # Display the retrieved note
-            if "error" in response:
-                st.error(response["error"])
-            else:
-                st.subheader("Retrieved Progress Note")
-                st.markdown(response.get("progress_note", "No response available"))
+                st.markdown(post_response.get("progress_note", "No response available"))
+                
+                # Automatically get the processed notes via GET request after processing the transcript
+                get_response = call_get_api("https://api-stage.allia.health/api/clinician/note/process-temp")
+                
+                # Display the retrieved note
+                if "error" in get_response:
+                    st.error(get_response["error"])
+                else:
+                    st.subheader("Retrieved Progress Note")
+                    st.markdown(get_response.get("progress_note", "No response available"))
 
 elif selected_option == "Treatment Plan":
     st.header("Treatment Plan - Demo")
