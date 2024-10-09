@@ -1,6 +1,65 @@
 import streamlit as st
-import requests
-import time
+from typing import List
+from pydantic import BaseModel
+
+# Define all models
+class Summary(BaseModel):
+    session_focus: str
+    chief_complaint: str
+
+class Challenge(BaseModel):
+    challenge_heading: str
+    challenge_description: str
+
+class Challenges(BaseModel):
+    challenges: List[Challenge]
+
+class Symptom(BaseModel):
+    symptom_heading: str
+    symptom_frequency: str
+    symptom_description: str
+
+class Symptoms(BaseModel):
+    symptoms: List[Symptom]
+
+class Assessment(BaseModel):
+    risks_or_safety_concerns: str
+    therapeutic_approach: str
+    psychological_interventions: str
+
+class Plan(BaseModel):
+    follow_up_actions: str
+    homework: str
+    additional_notes: str
+
+# Function to handle completions
+def fetch_completion(response_format, prompt, sentences):
+    # Mockup of processing function - Replace with actual logic as required
+    return response_format(**{"session_focus": "Sample focus", "chief_complaint": "Sample complaint"})
+
+# Dictionary to map response formats with respective prompts
+tasks = {
+    "summary": {
+        "format": Summary,
+        "prompt": "Use the information shared to create a brief description of what was the focus of the session and a summary of the chief complaint as described by them. Ensure the response is clinical with a 60-70 on the Flesch-Kincaid reading scale. Avoid fancy adjectives."
+    },
+    "challenges": {
+        "format": Challenges,
+        "prompt": "Find three key challenges that the patient shared in the meeting. Mention specific statements that validate the challenges."
+    },
+    "symptoms": {
+        "format": Symptoms,
+        "prompt": "Can you extract important symptoms the patient has shared alongside specific information for each, broken down into sub-bullets. Only report what the patient has shared."
+    },
+    "assessment": {
+        "format": Assessment,
+        "prompt": "Add specific information regarding any risks or safety concerns, therapeutic approaches utilized, and psychological intervention techniques used during the meeting."
+    },
+    "plan": {
+        "format": Plan,
+        "prompt": "Explain if any follow-up actions or homework were discussed during the meeting. Feel free to mention any additional notes."
+    }
+}
 
 # Streamlit app
 st.title("Allia Health Demo")
@@ -17,45 +76,30 @@ if selected_option == "Notes":
     if transcript_file is not None:
         # Read file content and convert to appropriate format if needed
         transcript_content = transcript_file.read().decode("utf-8")
-        
-        # Prepare data for POST request
-        data = {
-            "transcript": transcript_content
-        }
-        
-        # Send POST request to process the note
-        if st.button("Process Transcript"):
-            headers = {'Content-Type': 'application/json'}
-            try:
-                post_response = requests.post("https://api-stage.allia.health/api/clinician/note/process-temp", headers=headers, json=data)
-                post_response.raise_for_status()
-                post_result = post_response.json()
-                st.subheader("Generated Progress Note")
-                st.markdown(post_result.get("progress_note", "No response available"))
-            except requests.exceptions.RequestException as e:
-                st.error(f"API request failed: {e}")
-            except ValueError:
-                st.error("Invalid JSON response from server")
-                
-            # Keep trying to get the processed notes via GET request until a valid response is received
-            get_success = False
-            while not get_success:
-                try:
-                    get_response = requests.get("https://api-stage.allia.health/api/clinician/note/process-temp", headers=headers)
-                    get_response.raise_for_status()
-                    get_result = get_response.json()
-                    if get_result.get("success") == True and get_result.get("body") == "":
-                        get_success = True
-                        st.subheader("Retrieved Progress Note")
-                        st.markdown(get_result.get("progress_note", "No response available"))
-                    else:
-                        time.sleep(2)  # Wait for 2 seconds before trying again
-                except requests.exceptions.RequestException as e:
-                    st.error(f"API request failed: {e}")
-                    time.sleep(2)  # Wait for 2 seconds before trying again
-                except ValueError:
-                    st.error("Invalid JSON response from server")
-                    time.sleep(2)  # Wait for 2 seconds before trying again
+        sentences = transcript_content.split('.')  # Example of splitting transcript into sentences
+
+        # Loop through the tasks and fetch the corresponding completion
+        for task_name, task_info in tasks.items():
+            if task_name == "summary":
+                summary = fetch_completion(task_info["format"], task_info["prompt"], sentences)
+                st.subheader("Session Summary")
+                st.text(summary)
+            elif task_name == "challenges":
+                challenges = fetch_completion(task_info["format"], task_info["prompt"], sentences)
+                st.subheader("Challenges")
+                st.text(challenges)
+            elif task_name == "symptoms":
+                symptoms = fetch_completion(task_info["format"], task_info["prompt"], sentences)
+                st.subheader("Symptoms")
+                st.text(symptoms)
+            elif task_name == "assessment":
+                assessment = fetch_completion(task_info["format"], task_info["prompt"], sentences)
+                st.subheader("Assessment")
+                st.text(assessment)
+            elif task_name == "plan":
+                plan = fetch_completion(task_info["format"], task_info["prompt"], sentences)
+                st.subheader("Plan")
+                st.text(plan)
 
 elif selected_option == "Treatment Plan":
     st.header("Treatment Plan - Demo")
@@ -66,18 +110,8 @@ elif selected_option == "Treatment Plan":
 
     if transcript_file is not None:
         transcript_content = transcript_file.read().decode("utf-8")
-        data = {"transcript": transcript_content, "ehr_data": ehr_data}
-        headers = {'Content-Type': 'application/json'}
-        try:
-            response = requests.post("http://example.com/treatment_plan", headers=headers, json=data)
-            response.raise_for_status()
-            result = response.json()
-            st.subheader("Generated Treatment Plan")
-            st.text(result.get("treatment_plan", "No response available"))
-        except requests.exceptions.RequestException as e:
-            st.error(f"API request failed: {e}")
-        except ValueError:
-            st.error("Invalid JSON response from server")
+        st.subheader("Generated Treatment Plan")
+        st.text("Treatment plan generation logic here...")
 
 elif selected_option == "Copilot":
     st.header("Allia Copilot")
@@ -89,17 +123,7 @@ elif selected_option == "Copilot":
     if st.button("Send"):
         if user_input:
             chat_history.append(f"You: {user_input}")
-            data = {"user_input": user_input}
-            headers = {'Content-Type': 'application/json'}
-            try:
-                response = requests.post(f"http://example.com/copilot/{llm_option.lower()}", headers=headers, json=data)
-                response.raise_for_status()
-                result = response.json()
-                reply = result.get("reply", "No response available")
-            except requests.exceptions.RequestException as e:
-                reply = f"API request failed: {e}"
-            except ValueError:
-                reply = "Invalid JSON response from server"
+            reply = "Generated response from copilot model..."  # Placeholder response
             chat_history.append(f"{llm_option}: {reply}")
             st.session_state["chat_history"] = chat_history
 
@@ -114,19 +138,7 @@ elif selected_option == "Language":
 
     if transcript_file is not None:
         transcript_content = transcript_file.read().decode("utf-8")
-        data = {"transcript": transcript_content}
-        headers = {'Content-Type': 'application/json'}
-        try:
-            response = requests.post("http://example.com/language_analysis", headers=headers, json=data)
-            response.raise_for_status()
-            result = response.json()
-            st.subheader("Sentence Analysis")
-            sentences = result.get("sentences", [])
-            for sentence, label in sentences:
-                st.write(f"{sentence} - **{label}**")
-        except requests.exceptions.RequestException as e:
-            st.error(f"API request failed: {e}")
-        except ValueError:
-            st.error("Invalid JSON response from server")
+        st.subheader("Sentence Analysis")
+        st.text("Language analysis logic here...")
 else:
     st.write("Please select a valid option from the sidebar.")
