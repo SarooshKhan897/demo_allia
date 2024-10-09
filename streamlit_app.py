@@ -9,7 +9,7 @@ def call_post_api(endpoint, data):
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
-        return {"error": f"API request failed: {e}"}
+        return {"error": f"API request failed: {e}", "details": response.text if 'response' in locals() else "No response"}
     except ValueError:
         return {"error": "Invalid JSON response from server"}
 
@@ -21,7 +21,7 @@ def call_get_api(endpoint):
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
-        return {"error": f"API request failed: {e}"}
+        return {"error": f"API request failed: {e}", "details": response.text if 'response' in locals() else "No response"}
     except ValueError:
         return {"error": "Invalid JSON response from server"}
 
@@ -53,6 +53,8 @@ if selected_option == "Notes":
             # Display the progress note neatly
             if "error" in post_response:
                 st.error(post_response["error"])
+                if "details" in post_response:
+                    st.text(post_response["details"])
             else:
                 st.subheader("Generated Progress Note")
                 st.markdown(post_response.get("progress_note", "No response available"))
@@ -63,6 +65,8 @@ if selected_option == "Notes":
                 # Display the retrieved note
                 if "error" in get_response:
                     st.error(get_response["error"])
+                    if "details" in get_response:
+                        st.text(get_response["details"])
                 else:
                     st.subheader("Retrieved Progress Note")
                     st.markdown(get_response.get("progress_note", "No response available"))
@@ -81,6 +85,8 @@ elif selected_option == "Treatment Plan":
         # Display the treatment plan neatly
         if "error" in response:
             st.error(response["error"])
+            if "details" in response:
+                st.text(response["details"])
         else:
             st.subheader("Generated Treatment Plan")
             st.text(response.get("treatment_plan", "No response available"))
@@ -98,6 +104,8 @@ elif selected_option == "Copilot":
             response = call_post_api(f"http://example.com/copilot/{llm_option.lower()}", {"user_input": user_input})
             if "error" in response:
                 reply = response["error"]
+                if "details" in response:
+                    st.text(response["details"])
             else:
                 reply = response.get("reply", "No response available")
             chat_history.append(f"{llm_option}: {reply}")
@@ -119,6 +127,8 @@ elif selected_option == "Language":
         # Display the sentences and their labels
         if "error" in response:
             st.error(response["error"])
+            if "details" in response:
+                st.text(response["details"])
         else:
             st.subheader("Sentence Analysis")
             sentences = response.get("sentences", [])
@@ -127,3 +137,4 @@ elif selected_option == "Language":
 
 else:
     st.write("Please select a valid option from the sidebar.")
+
