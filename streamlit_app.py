@@ -44,7 +44,7 @@ if selected_option == "Notes":
                     get_response = requests.get("https://api-stage.allia.health/api/clinician/note/process-temp", headers=headers)
                     get_response.raise_for_status()
                     get_result = get_response.json()
-                    if get_result.get("progress_note"):
+                    if get_result.get("success") == True and get_result.get("body") == "":
                         get_success = True
                         st.subheader("Retrieved Progress Note")
                         st.markdown(get_result.get("progress_note", "No response available"))
