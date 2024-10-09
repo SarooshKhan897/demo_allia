@@ -3,3 +3,4 @@ pandas
 pydantic
 openai
 requests
+PyPDF2
