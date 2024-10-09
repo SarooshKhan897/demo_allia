@@ -1,65 +1,17 @@
 import streamlit as st
-from typing import List
-from pydantic import BaseModel
+import requests
 
-# Define all models
-class Summary(BaseModel):
-    session_focus: str
-    chief_complaint: str
+# Function to call the POST API for processing notes
+def call_post_api(endpoint, data):
+    headers = {'Content-Type': 'application/json'}
+    response = requests.post(endpoint, headers=headers, json=data)
+    return response.json()
 
-class Challenge(BaseModel):
-    challenge_heading: str
-    challenge_description: str
-
-class Challenges(BaseModel):
-    challenges: List[Challenge]
-
-class Symptom(BaseModel):
-    symptom_heading: str
-    symptom_frequency: str
-    symptom_description: str
-
-class Symptoms(BaseModel):
-    symptoms: List[Symptom]
-
-class Assessment(BaseModel):
-    risks_or_safety_concerns: str
-    therapeutic_approach: str
-    psychological_interventions: str
-
-class Plan(BaseModel):
-    follow_up_actions: str
-    homework: str
-    additional_notes: str
-
-# Function to handle completions
-def fetch_completion(response_format, prompt, sentences):
-    # Mockup of processing function - Replace with actual logic as required
-    return response_format(**{"session_focus": "Sample focus", "chief_complaint": "Sample complaint"})
-
-# Dictionary to map response formats with respective prompts
-tasks = {
-    "summary": {
-        "format": Summary,
-        "prompt": "Use the information shared to create a brief description of what was the focus of the session and a summary of the chief complaint as described by them. Ensure the response is clinical with a 60-70 on the Flesch-Kincaid reading scale. Avoid fancy adjectives."
-    },
-    "challenges": {
-        "format": Challenges,
-        "prompt": "Find three key challenges that the patient shared in the meeting. Mention specific statements that validate the challenges."
-    },
-    "symptoms": {
-        "format": Symptoms,
-        "prompt": "Can you extract important symptoms the patient has shared alongside specific information for each, broken down into sub-bullets. Only report what the patient has shared."
-    },
-    "assessment": {
-        "format": Assessment,
-        "prompt": "Add specific information regarding any risks or safety concerns, therapeutic approaches utilized, and psychological intervention techniques used during the meeting."
-    },
-    "plan": {
-        "format": Plan,
-        "prompt": "Explain if any follow-up actions or homework were discussed during the meeting. Feel free to mention any additional notes."
-    }
-}
+# Function to call the GET API for retrieving processed notes
+def call_get_api(endpoint):
+    headers = {'Content-Type': 'application/json'}
+    response = requests.get(endpoint, headers=headers)
+    return response.json()
 
 # Streamlit app
 st.title("Allia Health Demo")
@@ -76,30 +28,26 @@ if selected_option == "Notes":
     if transcript_file is not None:
         # Read file content and convert to appropriate format if needed
         transcript_content = transcript_file.read().decode("utf-8")
-        sentences = transcript_content.split('.')  # Example of splitting transcript into sentences
-
-        # Loop through the tasks and fetch the corresponding completion
-        for task_name, task_info in tasks.items():
-            if task_name == "summary":
-                summary = fetch_completion(task_info["format"], task_info["prompt"], sentences)
-                st.subheader("Session Summary")
-                st.text(summary)
-            elif task_name == "challenges":
-                challenges = fetch_completion(task_info["format"], task_info["prompt"], sentences)
-                st.subheader("Challenges")
-                st.text(challenges)
-            elif task_name == "symptoms":
-                symptoms = fetch_completion(task_info["format"], task_info["prompt"], sentences)
-                st.subheader("Symptoms")
-                st.text(symptoms)
-            elif task_name == "assessment":
-                assessment = fetch_completion(task_info["format"], task_info["prompt"], sentences)
-                st.subheader("Assessment")
-                st.text(assessment)
-            elif task_name == "plan":
-                plan = fetch_completion(task_info["format"], task_info["prompt"], sentences)
-                st.subheader("Plan")
-                st.text(plan)
+        
+        # Prepare data for POST request
+        data = {
+            "transcript": transcript_content
+        }
+        
+        # Send POST request to process the note
+        if st.button("Process Transcript"):
+            response = call_post_api("https://api-stage.allia.health/api/clinician/note/process-temp", data)
+            
+            # Display the progress note neatly
+            st.subheader("Generated Progress Note")
+            st.markdown(response.get("progress_note", "No response available"))
+        
+        # Automatically get the processed notes via GET request
+        response = call_get_api("https://api-stage.allia.health/api/clinician/note/process-temp")
+        
+        # Display the retrieved note
+        st.subheader("Retrieved Progress Note")
+        st.markdown(response.get("progress_note", "No response available"))
 
 elif selected_option == "Treatment Plan":
     st.header("Treatment Plan - Demo")
@@ -110,8 +58,11 @@ elif selected_option == "Treatment Plan":
 
     if transcript_file is not None:
         transcript_content = transcript_file.read().decode("utf-8")
+        response = call_post_api("http://example.com/treatment_plan", {"transcript": transcript_content, "ehr_data": ehr_data})
+        
+        # Display the treatment plan neatly
         st.subheader("Generated Treatment Plan")
-        st.text("Treatment plan generation logic here...")
+        st.text(response.get("treatment_plan", "No response available"))
 
 elif selected_option == "Copilot":
     st.header("Allia Copilot")
@@ -123,7 +74,8 @@ elif selected_option == "Copilot":
     if st.button("Send"):
         if user_input:
             chat_history.append(f"You: {user_input}")
-            reply = "Generated response from copilot model..."  # Placeholder response
+            response = call_post_api(f"http://example.com/copilot/{llm_option.lower()}", {"user_input": user_input})
+            reply = response.get("reply", "No response available")
             chat_history.append(f"{llm_option}: {reply}")
             st.session_state["chat_history"] = chat_history
 
@@ -138,7 +90,13 @@ elif selected_option == "Language":
 
     if transcript_file is not None:
         transcript_content = transcript_file.read().decode("utf-8")
+        response = call_post_api("http://example.com/language_analysis", {"transcript": transcript_content})
+        
+        # Display the sentences and their labels
         st.subheader("Sentence Analysis")
-        st.text("Language analysis logic here...")
+        sentences = response.get("sentences", [])
+        for sentence, label in sentences:
+            st.write(f"{sentence} - **{label}**")
+
 else:
     st.write("Please select a valid option from the sidebar.")
