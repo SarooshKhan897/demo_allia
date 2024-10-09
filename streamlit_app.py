@@ -5,13 +5,19 @@ import requests
 def call_post_api(endpoint, data):
     headers = {'Content-Type': 'application/json'}
     response = requests.post(endpoint, headers=headers, json=data)
-    return response.json()
+    try:
+        return response.json()
+    except ValueError:
+        return {"error": "Invalid JSON response from server"}
 
 # Function to call the GET API for retrieving processed notes
 def call_get_api(endpoint):
     headers = {'Content-Type': 'application/json'}
     response = requests.get(endpoint, headers=headers)
-    return response.json()
+    try:
+        return response.json()
+    except ValueError:
+        return {"error": "Invalid JSON response from server"}
 
 # Streamlit app
 st.title("Allia Health Demo")
