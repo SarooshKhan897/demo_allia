@@ -57,15 +57,16 @@ if selected_option == "Notes":
                 st.subheader("Generated Progress Note")
                 st.markdown(response.get("progress_note", "No response available"))
         
-        # Automatically get the processed notes via GET request
-        response = call_get_api("https://api-stage.allia.health/api/clinician/note/process-temp")
-        
-        # Display the retrieved note
-        if "error" in response:
-            st.error(response["error"])
-        else:
-            st.subheader("Retrieved Progress Note")
-            st.markdown(response.get("progress_note", "No response available"))
+        # Automatically get the processed notes via GET request after processing the transcript
+        if "progress_note" in response:
+            response = call_get_api("https://api-stage.allia.health/api/clinician/note/process-temp")
+            
+            # Display the retrieved note
+            if "error" in response:
+                st.error(response["error"])
+            else:
+                st.subheader("Retrieved Progress Note")
+                st.markdown(response.get("progress_note", "No response available"))
 
 elif selected_option == "Treatment Plan":
     st.header("Treatment Plan - Demo")
