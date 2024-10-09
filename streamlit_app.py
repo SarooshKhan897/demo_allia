@@ -1,5 +1,6 @@
 import streamlit as st
 import requests
+from PyPDF2 import PdfReader
 
 # Function to call the POST API for processing notes
 def call_post_api(endpoint, data):
@@ -27,27 +28,102 @@ if selected_option == "Notes":
 
     if transcript_file is not None:
         # Read file content and convert to appropriate format if needed
-        transcript_content = transcript_file.read().decode("utf-8")
+        if transcript_file.type == "application/pdf":
+            pdf_reader = PdfReader(transcript_file)
+            transcript_content = "\n".join(page.extract_text() for page in pdf_reader.pages)
+        else:
+            transcript_content = transcript_file.read().decode("utf-8")
+
+        sentences = transcript_content
+        from typing import List, Union
+        from pydantic import BaseModel
+        class Summary(BaseModel):
+            session_focus: str
+            chief_complaint: str
+
+        class Challenge(BaseModel):
+            challenge_heading: str
+            challenge_description: str
+
+        class Challenges(BaseModel):
+            challenges: List[Challenge]
+
+        class Symptom(BaseModel):
+            symptom_heading: str
+            symptom_frequency: str
+            symptom_description: str
         
-        # Prepare data for POST request
-        data = {
-            "transcript": transcript_content
+        class Symptoms(BaseModel):
+            symptoms: List[Symptom]
+        
+        class Assessment(BaseModel):
+            risks_or_safety_concerns: str
+            therapeutic_approach: str
+            psychological_interventions: str
+        
+        class Plan(BaseModel):
+            follow_up_actions: str
+            homework: str
+            additional_notes: str
+
+        # Function to handle completions
+        def fetch_completion(response_format, prompt, sentences):
+            completion = client.beta.chat.completions.parse(
+                model="gpt-4o-2024-08-06",
+                temperature=0.7,
+                top_p = 0.67,
+                frequency_penalty=0.5,
+                messages=[
+                    {"role": "system", "content": "You are a helpful psychologist who is expert at creating progress notes from sessions. Use the transcript provided to answer the questions. The transcript is a list of important sentences with the behavioural traits identified by a trait classification model. The traits are for your context. Do not mention the traits in any way"},
+                    {"role": "user", "content": prompt + " ".join(sentences)}
+                ],
+                response_format=response_format,
+            )
+            return completion.choices[0].message.parsed
+
+        # Dictionary to map response formats with respective prompts
+        tasks = {
+            "summary": {
+                "format": Summary,
+                "prompt": "Use the information shared to create a brief description of what was the focus of the session and a summary of the chief complaint as described by them. Ensure the response is clinical with a 60-70 on the Flesch-Kincaid reading scale. Avoid fancy adjectives."
+            },
+            "challenges": {
+                "format": Challenges,
+                "prompt": "Find three key challenges that the patient shared in the meeting. Mention specific statements that validate the challenges."
+            },
+            "symptoms": {
+                "format": Symptoms,
+                "prompt": "Can you extract important symptoms the patient has shared alongside specific information for each, broken down into sub-bullets. Only report what the patient has shared."
+            },
+            "assessment": {
+                "format": Assessment,
+                "prompt": "Add specific information regarding any risks or safety concerns, therapeutic approaches utilized, and psychological intervention techniques used during the meeting."
+            },
+            "plan": {
+                "format": Plan,
+                "prompt": "Explain if any follow-up actions or homework were discussed during the meeting. Feel free to mention any additional notes."
+            }
         }
+
+        # Loop through the tasks and fetch the corresponding completion
+        for task_name, task_info in tasks.items():
+            if task_name == "summary":
+                summary = fetch_completion(task_info["format"], task_info["prompt"], sentences)
+                st.markdown(summary)
+            elif task_name == "challenges":
+                challenges = fetch_completion(task_info["format"], task_info["prompt"], sentences)
+                st.markdown(challenges)
+            elif task_name == "symptoms":
+                symptoms = fetch_completion(task_info["format"], task_info["prompt"], sentences)
+                st.markdown(symptoms)
+            elif task_name == "assessment":
+                assessment = fetch_completion(task_info["format"], task_info["prompt"], sentences)
+                st.markdown(assessment)
+            elif task_name == "plan":
+                plan = fetch_completion(task_info["format"], task_info["prompt"], sentences)
+                st.markdown(plan) 
+
         
-        # Send POST request to process the note
-        if st.button("Process Transcript"):
-            response = call_post_api("https://api-stage.allia.health/api/clinician/note/process-temp", data)
-            
-            # Display the progress note neatly
-            st.subheader("Generated Progress Note")
-            st.markdown(response.get("progress_note", "No response available"))
-        
-        # Automatically get the processed notes via GET request
-        response = call_get_api("https://api-stage.allia.health/api/clinician/note/process-temp")
-        
-        # Display the retrieved note
-        st.subheader("Retrieved Progress Note")
-        st.markdown(response.get("progress_note", "No response available"))
 
 elif selected_option == "Treatment Plan":
     st.header("Treatment Plan - Demo")
