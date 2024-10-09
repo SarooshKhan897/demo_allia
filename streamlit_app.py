@@ -1,5 +1,6 @@
 import streamlit as st
 import requests
+import time
 
 # Function to call the POST API for processing notes
 def call_post_api(endpoint, data):
@@ -37,17 +38,18 @@ if selected_option == "Notes":
         # Send POST request to process the note
         if st.button("Process Transcript"):
             response = call_post_api("https://api-stage.allia.health/api/clinician/note/process-temp", data)
-            
-            # Display the progress note neatly
-            st.subheader("Generated Progress Note")
-            st.markdown(response.get("progress_note", "No response available"))
-        
+            print(response)
+            st.subheader("Starting Note Processing")
+            if(response["success"]):
+                st.markdown(response.get("progress_note", "Note is currently processing."))
         # Automatically get the processed notes via GET request
-        response = call_get_api("https://api-stage.allia.health/api/clinician/note/process-temp")
-        
-        # Display the retrieved note
-        st.subheader("Retrieved Progress Note")
-        st.markdown(response.get("progress_note", "No response available"))
+        response = None
+        while response is None or response["body"] == 'Note is still processing':
+            response = call_get_api("https://api-stage.allia.health/api/clinician/note/process-temp")
+            print(response)
+            time.sleep(10)
+        st.subheader("Processed Note")
+        st.components.v1.html(response["body"], height=1024, scrolling=True)
 
 elif selected_option == "Treatment Plan":
     st.header("Treatment Plan - Demo")
@@ -58,11 +60,20 @@ elif selected_option == "Treatment Plan":
 
     if transcript_file is not None:
         transcript_content = transcript_file.read().decode("utf-8")
-        response = call_post_api("http://example.com/treatment_plan", {"transcript": transcript_content, "ehr_data": ehr_data})
-        
-        # Display the treatment plan neatly
-        st.subheader("Generated Treatment Plan")
-        st.text(response.get("treatment_plan", "No response available"))
+        response = call_post_api("https://api-stage.allia.health/api/clinician/meeting/process-temp-transcript", {"transcript": transcript_content, "ehr_data": ehr_data})
+        print(response)
+        st.subheader("Starting Note Processing")
+        if(response["success"]):
+            st.markdown(response.get("progress_note", "Treatment Plan is currently processing."))
+        response = None
+
+        while response is None or response["body"]["processingStatus"] == 'processing':
+            response = call_get_api("https://api-stage.allia.health/api/clinician/meeting/temp-transcript")
+            print(response)
+            time.sleep(15)
+        st.subheader("Processed Treatment Plan")
+        print(response)
+        st.components.v1.html(response["body"], height=1024, scrolling=True)
 
 elif selected_option == "Copilot":
     st.header("Allia Copilot")
