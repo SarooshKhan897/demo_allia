@@ -1,29 +1,6 @@
 import streamlit as st
 import requests
-
-# Function to call the POST API for processing notes
-def call_post_api(endpoint, data):
-    headers = {'Content-Type': 'application/json'}
-    try:
-        response = requests.post(endpoint, headers=headers, json=data)
-        response.raise_for_status()
-        return response.json()
-    except requests.exceptions.RequestException as e:
-        return {"error": f"API request failed: {e}", "details": response.text if 'response' in locals() else "No response"}
-    except ValueError:
-        return {"error": "Invalid JSON response from server"}
-
-# Function to call the GET API for retrieving processed notes
-def call_get_api(endpoint):
-    headers = {'Content-Type': 'application/json'}
-    try:
-        response = requests.get(endpoint, headers=headers)
-        response.raise_for_status()
-        return response.json()
-    except requests.exceptions.RequestException as e:
-        return {"error": f"API request failed: {e}", "details": response.text if 'response' in locals() else "No response"}
-    except ValueError:
-        return {"error": "Invalid JSON response from server"}
+import time
 
 # Streamlit app
 st.title("Allia Health Demo")
@@ -48,28 +25,37 @@ if selected_option == "Notes":
         
         # Send POST request to process the note
         if st.button("Process Transcript"):
-            post_response = call_post_api("https://api-stage.allia.health/api/clinician/note/process-temp", data)
-            
-            # Display the progress note neatly
-            if "error" in post_response:
-                st.error(post_response["error"])
-                if "details" in post_response:
-                    st.text(post_response["details"])
-            else:
+            headers = {'Content-Type': 'application/json'}
+            try:
+                post_response = requests.post("https://api-stage.allia.health/api/clinician/note/process-temp", headers=headers, json=data)
+                post_response.raise_for_status()
+                post_result = post_response.json()
                 st.subheader("Generated Progress Note")
-                st.markdown(post_response.get("progress_note", "No response available"))
+                st.markdown(post_result.get("progress_note", "No response available"))
+            except requests.exceptions.RequestException as e:
+                st.error(f"API request failed: {e}")
+            except ValueError:
+                st.error("Invalid JSON response from server")
                 
-                # Automatically get the processed notes via GET request after processing the transcript
-                get_response = call_get_api("https://api-stage.allia.health/api/clinician/note/process-temp")
-                
-                # Display the retrieved note
-                if "error" in get_response:
-                    st.error(get_response["error"])
-                    if "details" in get_response:
-                        st.text(get_response["details"])
-                else:
-                    st.subheader("Retrieved Progress Note")
-                    st.markdown(get_response.get("progress_note", "No response available"))
+            # Keep trying to get the processed notes via GET request until a valid response is received
+            get_success = False
+            while not get_success:
+                try:
+                    get_response = requests.get("https://api-stage.allia.health/api/clinician/note/process-temp", headers=headers)
+                    get_response.raise_for_status()
+                    get_result = get_response.json()
+                    if get_result.get("progress_note"):
+                        get_success = True
+                        st.subheader("Retrieved Progress Note")
+                        st.markdown(get_result.get("progress_note", "No response available"))
+                    else:
+                        time.sleep(2)  # Wait for 2 seconds before trying again
+                except requests.exceptions.RequestException as e:
+                    st.error(f"API request failed: {e}")
+                    time.sleep(2)  # Wait for 2 seconds before trying again
+                except ValueError:
+                    st.error("Invalid JSON response from server")
+                    time.sleep(2)  # Wait for 2 seconds before trying again
 
 elif selected_option == "Treatment Plan":
     st.header("Treatment Plan - Demo")
@@ -80,16 +66,18 @@ elif selected_option == "Treatment Plan":
 
     if transcript_file is not None:
         transcript_content = transcript_file.read().decode("utf-8")
-        response = call_post_api("http://example.com/treatment_plan", {"transcript": transcript_content, "ehr_data": ehr_data})
-        
-        # Display the treatment plan neatly
-        if "error" in response:
-            st.error(response["error"])
-            if "details" in response:
-                st.text(response["details"])
-        else:
+        data = {"transcript": transcript_content, "ehr_data": ehr_data}
+        headers = {'Content-Type': 'application/json'}
+        try:
+            response = requests.post("http://example.com/treatment_plan", headers=headers, json=data)
+            response.raise_for_status()
+            result = response.json()
             st.subheader("Generated Treatment Plan")
-            st.text(response.get("treatment_plan", "No response available"))
+            st.text(result.get("treatment_plan", "No response available"))
+        except requests.exceptions.RequestException as e:
+            st.error(f"API request failed: {e}")
+        except ValueError:
+            st.error("Invalid JSON response from server")
 
 elif selected_option == "Copilot":
     st.header("Allia Copilot")
@@ -101,13 +89,17 @@ elif selected_option == "Copilot":
     if st.button("Send"):
         if user_input:
             chat_history.append(f"You: {user_input}")
-            response = call_post_api(f"http://example.com/copilot/{llm_option.lower()}", {"user_input": user_input})
-            if "error" in response:
-                reply = response["error"]
-                if "details" in response:
-                    st.text(response["details"])
-            else:
-                reply = response.get("reply", "No response available")
+            data = {"user_input": user_input}
+            headers = {'Content-Type': 'application/json'}
+            try:
+                response = requests.post(f"http://example.com/copilot/{llm_option.lower()}", headers=headers, json=data)
+                response.raise_for_status()
+                result = response.json()
+                reply = result.get("reply", "No response available")
+            except requests.exceptions.RequestException as e:
+                reply = f"API request failed: {e}"
+            except ValueError:
+                reply = "Invalid JSON response from server"
             chat_history.append(f"{llm_option}: {reply}")
             st.session_state["chat_history"] = chat_history
 
@@ -122,19 +114,19 @@ elif selected_option == "Language":
 
     if transcript_file is not None:
         transcript_content = transcript_file.read().decode("utf-8")
-        response = call_post_api("http://example.com/language_analysis", {"transcript": transcript_content})
-        
-        # Display the sentences and their labels
-        if "error" in response:
-            st.error(response["error"])
-            if "details" in response:
-                st.text(response["details"])
-        else:
+        data = {"transcript": transcript_content}
+        headers = {'Content-Type': 'application/json'}
+        try:
+            response = requests.post("http://example.com/language_analysis", headers=headers, json=data)
+            response.raise_for_status()
+            result = response.json()
             st.subheader("Sentence Analysis")
-            sentences = response.get("sentences", [])
+            sentences = result.get("sentences", [])
             for sentence, label in sentences:
                 st.write(f"{sentence} - **{label}**")
-
+        except requests.exceptions.RequestException as e:
+            st.error(f"API request failed: {e}")
+        except ValueError:
+            st.error("Invalid JSON response from server")
 else:
     st.write("Please select a valid option from the sidebar.")
-
