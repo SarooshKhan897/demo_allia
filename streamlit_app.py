@@ -4,18 +4,24 @@ import requests
 # Function to call the POST API for processing notes
 def call_post_api(endpoint, data):
     headers = {'Content-Type': 'application/json'}
-    response = requests.post(endpoint, headers=headers, json=data)
     try:
+        response = requests.post(endpoint, headers=headers, json=data)
+        response.raise_for_status()
         return response.json()
+    except requests.exceptions.RequestException as e:
+        return {"error": f"API request failed: {e}"}
     except ValueError:
         return {"error": "Invalid JSON response from server"}
 
 # Function to call the GET API for retrieving processed notes
 def call_get_api(endpoint):
     headers = {'Content-Type': 'application/json'}
-    response = requests.get(endpoint, headers=headers)
     try:
+        response = requests.get(endpoint, headers=headers)
+        response.raise_for_status()
         return response.json()
+    except requests.exceptions.RequestException as e:
+        return {"error": f"API request failed: {e}"}
     except ValueError:
         return {"error": "Invalid JSON response from server"}
 
@@ -45,15 +51,21 @@ if selected_option == "Notes":
             response = call_post_api("https://api-stage.allia.health/api/clinician/note/process-temp", data)
             
             # Display the progress note neatly
-            st.subheader("Generated Progress Note")
-            st.markdown(response.get("progress_note", "No response available"))
+            if "error" in response:
+                st.error(response["error"])
+            else:
+                st.subheader("Generated Progress Note")
+                st.markdown(response.get("progress_note", "No response available"))
         
         # Automatically get the processed notes via GET request
         response = call_get_api("https://api-stage.allia.health/api/clinician/note/process-temp")
         
         # Display the retrieved note
-        st.subheader("Retrieved Progress Note")
-        st.markdown(response.get("progress_note", "No response available"))
+        if "error" in response:
+            st.error(response["error"])
+        else:
+            st.subheader("Retrieved Progress Note")
+            st.markdown(response.get("progress_note", "No response available"))
 
 elif selected_option == "Treatment Plan":
     st.header("Treatment Plan - Demo")
@@ -67,8 +79,11 @@ elif selected_option == "Treatment Plan":
         response = call_post_api("http://example.com/treatment_plan", {"transcript": transcript_content, "ehr_data": ehr_data})
         
         # Display the treatment plan neatly
-        st.subheader("Generated Treatment Plan")
-        st.text(response.get("treatment_plan", "No response available"))
+        if "error" in response:
+            st.error(response["error"])
+        else:
+            st.subheader("Generated Treatment Plan")
+            st.text(response.get("treatment_plan", "No response available"))
 
 elif selected_option == "Copilot":
     st.header("Allia Copilot")
@@ -81,7 +96,10 @@ elif selected_option == "Copilot":
         if user_input:
             chat_history.append(f"You: {user_input}")
             response = call_post_api(f"http://example.com/copilot/{llm_option.lower()}", {"user_input": user_input})
-            reply = response.get("reply", "No response available")
+            if "error" in response:
+                reply = response["error"]
+            else:
+                reply = response.get("reply", "No response available")
             chat_history.append(f"{llm_option}: {reply}")
             st.session_state["chat_history"] = chat_history
 
@@ -99,10 +117,13 @@ elif selected_option == "Language":
         response = call_post_api("http://example.com/language_analysis", {"transcript": transcript_content})
         
         # Display the sentences and their labels
-        st.subheader("Sentence Analysis")
-        sentences = response.get("sentences", [])
-        for sentence, label in sentences:
-            st.write(f"{sentence} - **{label}**")
+        if "error" in response:
+            st.error(response["error"])
+        else:
+            st.subheader("Sentence Analysis")
+            sentences = response.get("sentences", [])
+            for sentence, label in sentences:
+                st.write(f"{sentence} - **{label}**")
 
 else:
     st.write("Please select a valid option from the sidebar.")
