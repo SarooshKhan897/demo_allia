@@ -38,7 +38,6 @@ if selected_option == "Notes":
         # Send POST request to process the note
         if st.button("Process Transcript"):
             response = call_post_api("https://api-stage.allia.health/api/clinician/note/process-temp", data)
-            print(response)
             st.subheader("Starting Note Processing")
             if(response["success"]):
                 st.markdown(response.get("progress_note", "Note is currently processing."))
@@ -46,34 +45,42 @@ if selected_option == "Notes":
         response = None
         while response is None or response["body"] == 'Note is still processing':
             response = call_get_api("https://api-stage.allia.health/api/clinician/note/process-temp")
-            print(response)
             time.sleep(10)
         st.subheader("Processed Note")
         st.components.v1.html(response["body"], height=1024, scrolling=True)
 
 elif selected_option == "Treatment Plan":
     st.header("Treatment Plan - Demo")
-    st.markdown("Upload a transcript from a therapy session and paste patient's EHR to process it into a detailed note")
-    st.markdown("Note: The treatment plan does not include the context from behavioral markers and clinical assessments. These features require active patient input")
+    st.markdown("Upload a transcript from a therapy session. For demo purposes a sample patient's EHR is processed and returned.")
+    st.markdown("Note: The treatment plan does not include the context clinical assessments. These features require active patient input")
     transcript_file = st.file_uploader("Upload a Transcript File (txt/pdf)", type=["txt", "pdf"])
-    ehr_data = st.text_area("Enter EHR Data (if available)")
 
     if transcript_file is not None:
-        transcript_content = transcript_file.read().decode("utf-8")
-        response = call_post_api("https://api-stage.allia.health/api/clinician/meeting/process-temp-transcript", {"transcript": transcript_content, "ehr_data": ehr_data})
-        print(response)
-        st.subheader("Starting Note Processing")
-        if(response["success"]):
-            st.markdown(response.get("progress_note", "Treatment Plan is currently processing."))
-        response = None
-
-        while response is None or response["body"]["processingStatus"] == 'processing':
-            response = call_get_api("https://api-stage.allia.health/api/clinician/meeting/temp-transcript")
+        if st.button("Process Transcript for Treatment Plan"):
+            transcript_content = transcript_file.read().decode("utf-8")
+            response = call_post_api("https://api-stage.allia.health/api/clinician/meeting/process-temp-transcript", {"transcript": transcript_content})
             print(response)
-            time.sleep(15)
-        st.subheader("Processed Treatment Plan")
-        print(response)
-        st.components.v1.html(response["body"], height=1024, scrolling=True)
+            st.subheader("Starting Plan Processing")
+            if(response["success"]):
+                st.markdown( "Treatment Plan is currently processing." )
+            response = None
+
+            while response is None or response["body"].get("processingStatus") == 'processing':
+                time.sleep(15)
+                response = call_get_api("https://api-stage.allia.health/api/clinician/meeting/temp-transcript")
+            st.subheader("Processed Treatment Plan")
+            st.components.v1.html(response["body"]["processedTranscript"], height=1024, scrolling=True)
+            st.subheader("Patient EHR")
+            st.json({
+                "pastIllnesses": response["body"]["pastIllnesses"],
+                "pastSurgeries": response["body"]["pastSurgeries"],
+                "currentHealthIssues": response["body"]["currentHealthIssues"],
+                "medications": response["body"]["medications"],
+                "pastLabWork": response["body"]["pastLabWork"],
+                "weightObservations": response["body"]["weightObservations"],
+                "substanceUseHistory": response["body"]["substanceUseHistory"],
+                "familyMedicalHistory": response["body"]["familyMedicalHistory"]
+            })
 
 elif selected_option == "Copilot":
     st.header("Allia Copilot")
