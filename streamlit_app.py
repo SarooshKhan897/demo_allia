@@ -2,6 +2,7 @@ import streamlit as st
 import requests
 import time
 
+
 # Function to call the POST API for processing notes
 def call_post_api(endpoint, data):
     headers = {'Content-Type': 'application/json'}
